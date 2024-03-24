@@ -16,7 +16,7 @@ abstract class AbstractCacher implements CacherInterface
     /**
      * @param iterable<string> $keys
      *
-     * @return array<string>
+     * @return string[]
      *
      * @throws CacherException
      */

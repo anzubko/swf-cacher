@@ -33,7 +33,7 @@ interface CacherInterface extends CacheInterface
      *
      * @param iterable<string> $keys
      *
-     * @return array<string,mixed>
+     * @return mixed[]
      *
      * @throws CacherException
      */

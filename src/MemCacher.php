@@ -13,7 +13,7 @@ class MemCacher extends AbstractCacher
     /**
      * @param string|null $ns Namespace prefix.
      * @param int|null $ttl Default TTL.
-     * @param array<mixed[]>|null $servers Servers to connect.
+     * @param mixed[][]|null $servers Servers to connect.
      * @param mixed[]|null $options Memcached options.
      */
     public function __construct(?string $ns = null, ?int $ttl = 0, ?array $servers = [], ?array $options = [])
