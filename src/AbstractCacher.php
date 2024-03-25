@@ -32,9 +32,9 @@ abstract class AbstractCacher implements CacherInterface
     }
 
     /**
-     * @param iterable<string,mixed> $values
+     * @param iterable<mixed> $values
      *
-     * @return array<string,mixed>
+     * @return mixed[]
      *
      * @throws CacherException
      */

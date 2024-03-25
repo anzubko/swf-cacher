@@ -42,7 +42,7 @@ interface CacherInterface extends CacheInterface
     /**
      * @inheritDoc
      *
-     * @param iterable<string,mixed> $values
+     * @param iterable<mixed> $values
      *
      * @throws CacherException
      */
