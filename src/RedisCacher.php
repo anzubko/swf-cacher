@@ -56,7 +56,6 @@ class RedisCacher extends AbstractCacher
         }
 
         try {
-            /** @phpstan-ignore-next-line */
             [$value, $exists] = $this->redis->multi()->get($key)->exists($key)->exec();
         } catch (RedisException) {
             return $default;
