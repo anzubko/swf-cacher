@@ -5,6 +5,7 @@ namespace SWF;
 use DateInterval;
 use Memcached;
 use SWF\Exception\CacherException;
+use function count;
 
 class MemCacher extends AbstractCacher
 {
@@ -13,10 +14,10 @@ class MemCacher extends AbstractCacher
     /**
      * @param string|null $ns Namespace prefix.
      * @param int|null $ttl Default TTL.
-     * @param mixed[][]|null $servers Servers to connect.
-     * @param mixed[]|null $options Memcached options.
+     * @param mixed[][] $servers Servers to connect.
+     * @param mixed[] $options Memcached options.
      */
-    public function __construct(?string $ns = null, ?int $ttl = 0, ?array $servers = [], ?array $options = [])
+    public function __construct(?string $ns = null, ?int $ttl = null, array $servers = [], array $options = [])
     {
         if (!extension_loaded('memcached')) {
             return;
@@ -24,7 +25,7 @@ class MemCacher extends AbstractCacher
 
         $this->ttl = $ttl ?? $this->ttl;
 
-        if (empty($servers)) {
+        if (count($servers) === 0) {
             $servers = [['127.0.0.1', 11211]];
         }
 

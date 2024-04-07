@@ -6,6 +6,7 @@ use DateInterval;
 use Redis;
 use RedisException;
 use SWF\Exception\CacherException;
+use function count;
 
 class RedisCacher extends AbstractCacher
 {
@@ -14,12 +15,12 @@ class RedisCacher extends AbstractCacher
     /**
      * @param string|null $ns Namespace prefix.
      * @param int|null $ttl Default TTL.
-     * @param mixed[]|null $connect Server to connect.
-     * @param mixed[]|null $options Redis options.
+     * @param mixed[] $connect Server to connect.
+     * @param mixed[] $options Redis options.
      *
      * @throws CacherException
      */
-    public function __construct(?string $ns = null, ?int $ttl = 0, ?array $connect = [], ?array $options = [])
+    public function __construct(?string $ns = null, ?int $ttl = null, array $connect = [], array $options = [])
     {
         if (!extension_loaded('redis')) {
             return;
@@ -27,7 +28,7 @@ class RedisCacher extends AbstractCacher
 
         $this->ttl = $ttl ?? $this->ttl;
 
-        if (empty($connect)) {
+        if (count($connect) === 0) {
             $connect = ['127.0.0.1', 6379, 2.5];
         }
 
