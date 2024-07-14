@@ -14,11 +14,8 @@ class ApcCacher extends AbstractCacher
      * @param string|null $ns Namespace prefix.
      * @param int|null $ttl Default TTL.
      */
-    public function __construct(?string $ns = null, ?int $ttl = null) {
-        if (!extension_loaded('apcu')) {
-            return;
-        }
-
+    public function __construct(?string $ns = null, ?int $ttl = null)
+    {
         $this->ttl = $ttl ?? $this->ttl;
 
         $this->ns = $ns ?? md5(__FILE__);
@@ -29,10 +26,6 @@ class ApcCacher extends AbstractCacher
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        if (!isset($this->ns)) {
-            return $default;
-        }
-
         $value = apcu_fetch($this->ns . $key, $success);
 
         return $success ? $value : $default;
@@ -43,10 +36,6 @@ class ApcCacher extends AbstractCacher
      */
     public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
-        if (!isset($this->ns)) {
-            return false;
-        }
-
         return apcu_store($this->ns . $key, $value, $this->fixTtl($ttl));
     }
 
@@ -55,10 +44,6 @@ class ApcCacher extends AbstractCacher
      */
     public function delete(string $key): bool
     {
-        if (!isset($this->ns)) {
-            return false;
-        }
-
         return apcu_delete($this->ns . $key);
     }
 
@@ -79,11 +64,7 @@ class ApcCacher extends AbstractCacher
     {
         $keys = $this->checkKeys($keys);
 
-        if (isset($this->ns)) {
-            $fetched = (array) apcu_fetch(array_map(fn($key) => $this->ns . $key, $keys));
-        } else {
-            $fetched = [];
-        }
+        $fetched = (array) apcu_fetch(array_map(fn($key) => $this->ns . $key, $keys));
 
         $values = [];
         foreach ($keys as $key) {
@@ -105,9 +86,6 @@ class ApcCacher extends AbstractCacher
     public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         $values = $this->checkValues($values);
-        if (!isset($this->ns)) {
-            return false;
-        }
 
         $values = array_combine(array_map(fn($k) => $this->ns . $k, array_keys($values)), $values);
 
@@ -121,12 +99,7 @@ class ApcCacher extends AbstractCacher
      */
     public function deleteMultiple(iterable $keys): bool
     {
-        $keys = $this->checkKeys($keys);
-        if (!isset($this->ns)) {
-            return false;
-        }
-
-        return apcu_delete(new APCUIterator(array_map(fn($k) => $this->ns . $k, $keys)));
+        return apcu_delete(new APCUIterator(array_map(fn($k) => $this->ns . $k, $this->checkKeys($keys))));
     }
 
     /**
@@ -134,10 +107,6 @@ class ApcCacher extends AbstractCacher
      */
     public function has(string $key): bool
     {
-        if (!isset($this->ns)) {
-            return false;
-        }
-
         return apcu_exists($this->ns . $key);
     }
 }
