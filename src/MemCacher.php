@@ -19,10 +19,6 @@ class MemCacher extends AbstractCacher
      */
     public function __construct(?string $ns = null, ?int $ttl = null, array $servers = [], array $options = [])
     {
-        if (!extension_loaded('memcached')) {
-            return;
-        }
-
         $this->ttl = $ttl ?? $this->ttl;
 
         if (count($servers) === 0) {
@@ -41,10 +37,6 @@ class MemCacher extends AbstractCacher
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        if (!isset($this->instance)) {
-            return $default;
-        }
-
         $values = $this->instance->getMulti([$key]);
 
         return $values ? $values[$key] : $default;
@@ -55,10 +47,6 @@ class MemCacher extends AbstractCacher
      */
     public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
-        if (!isset($this->instance)) {
-            return false;
-        }
-
         return $this->instance->set($key, $value, $this->fixTtl($ttl));
     }
 
@@ -67,10 +55,6 @@ class MemCacher extends AbstractCacher
      */
     public function delete(string $key): bool
     {
-        if (!isset($this->instance)) {
-            return false;
-        }
-
         return $this->instance->delete($key);
     }
 
@@ -91,11 +75,7 @@ class MemCacher extends AbstractCacher
     {
         $keys = $this->checkKeys($keys);
 
-        if (isset($this->instance)) {
-            $fetched = $this->instance->getMulti($keys) ?: [];
-        } else {
-            $fetched = [];
-        }
+        $fetched = $this->instance->getMulti($keys) ?: [];
 
         $values = [];
         foreach ($keys as $key) {
@@ -112,12 +92,7 @@ class MemCacher extends AbstractCacher
      */
     public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
-        $values = $this->checkValues($values);
-        if (!isset($this->instance)) {
-            return false;
-        }
-
-        return $this->instance->setMulti($values, $this->fixTtl($ttl));
+        return $this->instance->setMulti($this->checkValues($values), $this->fixTtl($ttl));
     }
 
     /**
@@ -127,12 +102,7 @@ class MemCacher extends AbstractCacher
      */
     public function deleteMultiple(iterable $keys): bool
     {
-        $keys = $this->checkKeys($keys);
-        if (!isset($this->instance)) {
-            return false;
-        }
-
-        $this->instance->deleteMulti($keys);
+        $this->instance->deleteMulti($this->checkKeys($keys));
 
         return true;
     }
@@ -142,10 +112,6 @@ class MemCacher extends AbstractCacher
      */
     public function has(string $key): bool
     {
-        if (!isset($this->instance)) {
-            return false;
-        }
-
         return (bool) $this->instance->getMulti([$key]);
     }
 }

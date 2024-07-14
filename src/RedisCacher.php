@@ -22,10 +22,6 @@ class RedisCacher extends AbstractCacher
      */
     public function __construct(?string $ns = null, ?int $ttl = null, array $connect = [], array $options = [])
     {
-        if (!extension_loaded('redis')) {
-            return;
-        }
-
         $this->ttl = $ttl ?? $this->ttl;
 
         if (count($connect) === 0) {
@@ -52,10 +48,6 @@ class RedisCacher extends AbstractCacher
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        if (!isset($this->instance)) {
-            return $default;
-        }
-
         try {
             [$value, $exists] = $this->instance->multi()->get($key)->exists($key)->exec();
         } catch (RedisException) {
@@ -70,10 +62,6 @@ class RedisCacher extends AbstractCacher
      */
     public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
-        if (!isset($this->instance)) {
-            return false;
-        }
-
         $ttl = $this->fixTtl($ttl);
 
         try {
@@ -92,10 +80,6 @@ class RedisCacher extends AbstractCacher
      */
     public function delete(string $key): bool
     {
-        if (!isset($this->instance)) {
-            return false;
-        }
-
         try {
             return (bool) $this->instance->del($key);
         } catch (RedisException) {
@@ -121,23 +105,21 @@ class RedisCacher extends AbstractCacher
         $keys = $this->checkKeys($keys);
 
         $fetched = [];
-        if (isset($this->instance)) {
-            try {
-                $this->instance->multi()->mGet($keys);
+        try {
+            $this->instance->multi()->mGet($keys);
 
-                foreach ($keys as $key) {
-                    $this->instance->exists($key);
-                }
-
-                $result = $this->instance->exec();
-
-                foreach ($result[0] as $i => $value) {
-                    if ($result[$i + 1]) {
-                        $fetched[$keys[$i]] = $value;
-                    }
-                }
-            } catch (RedisException) {
+            foreach ($keys as $key) {
+                $this->instance->exists($key);
             }
+
+            $result = $this->instance->exec();
+
+            foreach ($result[0] as $i => $value) {
+                if ($result[$i + 1]) {
+                    $fetched[$keys[$i]] = $value;
+                }
+            }
+        } catch (RedisException) {
         }
 
         $values = [];
@@ -155,21 +137,14 @@ class RedisCacher extends AbstractCacher
      */
     public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
-        $values = $this->checkValues($values);
-        if (!isset($this->instance)) {
-            return false;
-        }
-
         $ttl = $this->fixTtl($ttl);
 
         try {
             $success = true;
-            if ($ttl > 0) {
-                foreach ($values as $key => $value) {
+            foreach ($this->checkValues($values) as $key => $value) {
+                if ($ttl > 0) {
                     $success = $this->instance->set($key, $value, $ttl) ? $success : false;
-                }
-            } else {
-                foreach ($values as $key => $value) {
+                } else {
                     $success = $this->instance->set($key, $value) ? $success : false;
                 }
             }
@@ -187,13 +162,8 @@ class RedisCacher extends AbstractCacher
      */
     public function deleteMultiple(iterable $keys): bool
     {
-        $keys = $this->checkKeys($keys);
-        if (!isset($this->instance)) {
-            return false;
-        }
-
         try {
-            $this->instance->del($keys);
+            $this->instance->del($this->checkKeys($keys));
         } catch (RedisException) {
             return false;
         }
@@ -206,10 +176,6 @@ class RedisCacher extends AbstractCacher
      */
     public function has(string $key): bool
     {
-        if (!isset($this->instance)) {
-            return false;
-        }
-
         try {
             return (bool) $this->instance->exists($key);
         } catch (RedisException) {
