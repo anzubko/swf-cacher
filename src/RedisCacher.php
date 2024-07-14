@@ -10,7 +10,7 @@ use function count;
 
 class RedisCacher extends AbstractCacher
 {
-    protected Redis $redis;
+    public readonly Redis $instance;
 
     /**
      * @param string|null $ns Namespace prefix.
@@ -36,11 +36,11 @@ class RedisCacher extends AbstractCacher
         $options[Redis::OPT_SERIALIZER] ??= Redis::SERIALIZER_PHP;
 
         try {
-            $this->redis = new Redis();
-            $this->redis->connect(...$connect);
+            $this->instance = new Redis();
+            $this->instance->connect(...$connect);
 
             foreach ($options as $key => $value) {
-                $this->redis->setOption($key, $value);
+                $this->instance->setOption($key, $value);
             }
         } catch (RedisException $e) {
             throw new CacherException($e->getMessage());
@@ -52,12 +52,12 @@ class RedisCacher extends AbstractCacher
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        if (!isset($this->redis)) {
+        if (!isset($this->instance)) {
             return $default;
         }
 
         try {
-            [$value, $exists] = $this->redis->multi()->get($key)->exists($key)->exec();
+            [$value, $exists] = $this->instance->multi()->get($key)->exists($key)->exec();
         } catch (RedisException) {
             return $default;
         }
@@ -70,7 +70,7 @@ class RedisCacher extends AbstractCacher
      */
     public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
-        if (!isset($this->redis)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
@@ -78,9 +78,9 @@ class RedisCacher extends AbstractCacher
 
         try {
             if ($ttl > 0) {
-                return $this->redis->set($key, $value, $ttl);
+                return $this->instance->set($key, $value, $ttl);
             } else {
-                return $this->redis->set($key, $value);
+                return $this->instance->set($key, $value);
             }
         } catch (RedisException) {
             return false;
@@ -92,12 +92,12 @@ class RedisCacher extends AbstractCacher
      */
     public function delete(string $key): bool
     {
-        if (!isset($this->redis)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
         try {
-            return (bool) $this->redis->del($key);
+            return (bool) $this->instance->del($key);
         } catch (RedisException) {
             return false;
         }
@@ -121,15 +121,15 @@ class RedisCacher extends AbstractCacher
         $keys = $this->checkKeys($keys);
 
         $fetched = [];
-        if (isset($this->redis)) {
+        if (isset($this->instance)) {
             try {
-                $this->redis->multi()->mGet($keys);
+                $this->instance->multi()->mGet($keys);
 
                 foreach ($keys as $key) {
-                    $this->redis->exists($key);
+                    $this->instance->exists($key);
                 }
 
-                $result = $this->redis->exec();
+                $result = $this->instance->exec();
 
                 foreach ($result[0] as $i => $value) {
                     if ($result[$i + 1]) {
@@ -156,7 +156,7 @@ class RedisCacher extends AbstractCacher
     public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         $values = $this->checkValues($values);
-        if (!isset($this->redis)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
@@ -166,11 +166,11 @@ class RedisCacher extends AbstractCacher
             $success = true;
             if ($ttl > 0) {
                 foreach ($values as $key => $value) {
-                    $success = $this->redis->set($key, $value, $ttl) ? $success : false;
+                    $success = $this->instance->set($key, $value, $ttl) ? $success : false;
                 }
             } else {
                 foreach ($values as $key => $value) {
-                    $success = $this->redis->set($key, $value) ? $success : false;
+                    $success = $this->instance->set($key, $value) ? $success : false;
                 }
             }
 
@@ -188,12 +188,12 @@ class RedisCacher extends AbstractCacher
     public function deleteMultiple(iterable $keys): bool
     {
         $keys = $this->checkKeys($keys);
-        if (!isset($this->redis)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
         try {
-            $this->redis->del($keys);
+            $this->instance->del($keys);
         } catch (RedisException) {
             return false;
         }
@@ -206,12 +206,12 @@ class RedisCacher extends AbstractCacher
      */
     public function has(string $key): bool
     {
-        if (!isset($this->redis)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
         try {
-            return (bool) $this->redis->exists($key);
+            return (bool) $this->instance->exists($key);
         } catch (RedisException) {
             return false;
         }

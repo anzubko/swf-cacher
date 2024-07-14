@@ -9,7 +9,7 @@ use function count;
 
 class MemCacher extends AbstractCacher
 {
-    protected Memcached $memcached;
+    protected readonly Memcached $instance;
 
     /**
      * @param string|null $ns Namespace prefix.
@@ -31,9 +31,9 @@ class MemCacher extends AbstractCacher
 
         $options[Memcached::OPT_PREFIX_KEY] = $ns ?? md5(__FILE__);
 
-        $this->memcached = new Memcached();
-        $this->memcached->addServers($servers);
-        $this->memcached->setOptions($options);
+        $this->instance = new Memcached();
+        $this->instance->addServers($servers);
+        $this->instance->setOptions($options);
     }
 
     /**
@@ -41,11 +41,11 @@ class MemCacher extends AbstractCacher
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        if (!isset($this->memcached)) {
+        if (!isset($this->instance)) {
             return $default;
         }
 
-        $values = $this->memcached->getMulti([$key]);
+        $values = $this->instance->getMulti([$key]);
 
         return $values ? $values[$key] : $default;
     }
@@ -55,11 +55,11 @@ class MemCacher extends AbstractCacher
      */
     public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
-        if (!isset($this->memcached)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
-        return $this->memcached->set($key, $value, $this->fixTtl($ttl));
+        return $this->instance->set($key, $value, $this->fixTtl($ttl));
     }
 
     /**
@@ -67,11 +67,11 @@ class MemCacher extends AbstractCacher
      */
     public function delete(string $key): bool
     {
-        if (!isset($this->memcached)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
-        return $this->memcached->delete($key);
+        return $this->instance->delete($key);
     }
 
     /**
@@ -91,8 +91,8 @@ class MemCacher extends AbstractCacher
     {
         $keys = $this->checkKeys($keys);
 
-        if (isset($this->memcached)) {
-            $fetched = $this->memcached->getMulti($keys) ?: [];
+        if (isset($this->instance)) {
+            $fetched = $this->instance->getMulti($keys) ?: [];
         } else {
             $fetched = [];
         }
@@ -113,11 +113,11 @@ class MemCacher extends AbstractCacher
     public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
         $values = $this->checkValues($values);
-        if (!isset($this->memcached)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
-        return $this->memcached->setMulti($values, $this->fixTtl($ttl));
+        return $this->instance->setMulti($values, $this->fixTtl($ttl));
     }
 
     /**
@@ -128,11 +128,11 @@ class MemCacher extends AbstractCacher
     public function deleteMultiple(iterable $keys): bool
     {
         $keys = $this->checkKeys($keys);
-        if (!isset($this->memcached)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
-        $this->memcached->deleteMulti($keys);
+        $this->instance->deleteMulti($keys);
 
         return true;
     }
@@ -142,10 +142,10 @@ class MemCacher extends AbstractCacher
      */
     public function has(string $key): bool
     {
-        if (!isset($this->memcached)) {
+        if (!isset($this->instance)) {
             return false;
         }
 
-        return (bool) $this->memcached->getMulti([$key]);
+        return (bool) $this->instance->getMulti([$key]);
     }
 }
