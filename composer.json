@@ -1,6 +1,6 @@
 {
     "name": "anzubko/swf-cacher",
-    "description": "SWF cacher",
+    "description": "Simplest framework cache provider",
     "type": "library",
     "license": "GPL-3.0-or-later",
     "autoload": {
@@ -15,7 +15,7 @@
         }
     ],
     "require": {
-        "php": "^8.2",
+        "php": ">=8.2",
         "psr/simple-cache": "^3.0"
     }
 }
