@@ -9,7 +9,7 @@ use function count;
 
 class MemCacher extends AbstractCacher
 {
-    protected readonly Memcached $instance;
+    public readonly Memcached $instance;
 
     /**
      * @param string|null $ns Namespace prefix.
