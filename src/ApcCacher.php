@@ -64,7 +64,10 @@ class ApcCacher extends AbstractCacher
     {
         $keys = $this->checkKeys($keys);
 
-        $fetched = (array) apcu_fetch(array_map(fn($key) => $this->ns . $key, $keys));
+        $fetched = apcu_fetch(array_map(fn($key) => $this->ns . $key, $keys));
+        if (false === $fetched) {
+            $fetched = [];
+        }
 
         $values = [];
         foreach ($keys as $key) {

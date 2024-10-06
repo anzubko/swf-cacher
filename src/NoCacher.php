@@ -49,7 +49,6 @@ class NoCacher extends AbstractCacher
         $this->checkKeys($keys);
 
         $values = [];
-
         foreach ($keys as $key) {
             $values[$key] = $default;
         }

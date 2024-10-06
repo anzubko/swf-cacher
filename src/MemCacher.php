@@ -75,7 +75,10 @@ class MemCacher extends AbstractCacher
     {
         $keys = $this->checkKeys($keys);
 
-        $fetched = $this->instance->getMulti($keys) ?: [];
+        $fetched = $this->instance->getMulti($keys);
+        if (false === $fetched) {
+            $fetched = [];
+        }
 
         $values = [];
         foreach ($keys as $key) {
