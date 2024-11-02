@@ -52,7 +52,7 @@ abstract class AbstractCacher implements CacherInterface
 
     protected function fixTtl(null|int|DateInterval $ttl): int
     {
-        if (null !== $ttl) {
+        if ($ttl !== null) {
             if ($ttl instanceof DateInterval) {
                 $ttl = (new DateTime())->setTimestamp(0)->add($ttl)->getTimestamp();
             } else {
